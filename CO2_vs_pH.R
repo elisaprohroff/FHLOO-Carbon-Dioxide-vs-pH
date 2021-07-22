@@ -30,7 +30,7 @@ library(zoo)
 
 ################ Open FHLOO as CSV ######################
 
-FHLOO <- read.csv('FHLOO TXT - Copy.CSV', na.strings=c("-9999","NaN"))
+FHLOO <- read.csv('NANOOS_FHLOO(1).CSV', na.strings=c("-9999","NaN"))
 
 
 colnames(FHLOO)
@@ -39,19 +39,32 @@ colnames(FHLOO)
 
 
 # Read the data, turn nonexistent data to "NaN"
-FHLOO <- read.table("FHLOO TXT - Copy.CSV", na.strings=c("-9999","NaN"), header=T, sep=",") %>% head(2154)
+FHLOO <- read.table("NANOOS_FHLOO(1).CSV", na.strings=c("-9999","NaN"), header=T, sep=",") 
 
 colnames(FHLOO)
 
 # Change character string to date&time in POSIXct
 FHLOO$Date <- ymd_hms(FHLOO$PDT) 
 
+#~~~~~~~~~~~~~~~~~~~ Create Bins for Salinity ~~~~~~~~~~~~~~~~~~~~~~~
+
+# Initialize empty variable first
+FHLOO$Salinity <- NA
+
+#Fill in values (Only 2 Categories)
+#FHLOO1$Salinity <- ifelse(FHLOO$SBE37Sal_PSU >= 30, "HighSal", "LowSal")
+
+#Create 3 different thresholds for salinity and separate into high, med, and low
+FHLOO$Salinity <- cut(FHLOO$SBE37Sal_PSU, breaks = c(-Inf, 27, 30, Inf),
+                       labels = c("LowSal", "MedSal", "HighSal"))
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Scatter and Bubble Plots ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-pHCO2 <- ggplot(data = FHLOO, aes(x = pH, y = CO2_uAtm, size = SBE37Sal_PSU, color = Fresh)) +
-  geom_point(alpha = 0.3) +
+#pdf('rplot.pdf')
+pHCO2 <- ggplot(data = FHLOO, aes(x = pH, y = CO2_uAtm, color = Salinity)) +
+  geom_point(alpha = 0.4, size = 1.5) +
   theme_bw()
 
 ggplotly(pHCO2)
-
+#dev.off()
 
